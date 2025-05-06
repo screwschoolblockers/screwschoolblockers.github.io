@@ -60,7 +60,7 @@ class NenePixelCharacter extends SparrowCharacter {
 		abotSpeaker.animation.addByPrefix('danceLeft', 'danceLeft', 24, false);
 
 		abotBack = FunkinSprite.create(0, 0, 'characters/abotPixel/aBotPixelBack');
-		abotBack.scale.set(6, 6);
+		abotBack.scale.set(6.1, 6);
 		abotBack.antialiasing = false;
 		abotBack.x = this.x;
 		abotBack.y = this.y;
@@ -169,9 +169,9 @@ class NenePixelCharacter extends SparrowCharacter {
 		abotSpeakerShader.threshold = 1;
 
 		abotSpeakerShader.attachedSprite = abotSpeaker;
-		abotSpeaker.animation.callback = function() {
+		abotSpeaker.animation.onFrameChange.add(function() {
 			abotSpeakerShader.updateFrameInfo(abotSpeaker.frame);
-		}
+		});
 
 		abotSpeakerShader.loadAltMask('assets/week6/images/weeb/erect/masks/aBotPixelSpeaker_mask.png');
 		abotSpeakerShader.maskThreshold = 0;
@@ -310,12 +310,15 @@ class NenePixelCharacter extends SparrowCharacter {
 		}
 	}
 
-	public function onScriptEvent(event:ScriptEvent):Void {
-		if (event.type == "SONG_START")
-		{
-			abotViz.snd = FlxG.sound.music;
-			abotViz.initAnalyzer();
-		}
+	override function onSongStart(event:ScriptEvent) {
+		abotViz.snd = FlxG.sound.music;
+		abotViz.initAnalyzer();
+	}
+
+	override function onSongRetry(event:ScriptEvent)
+	{
+		super.onSongRetry();
+		abotViz.dumpSound();
 	}
 
 	var animationFinished:Bool = false;

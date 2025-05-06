@@ -30,8 +30,8 @@ class SenpaiSong extends Song {
   public override function onCountdownStart(event:CountdownScriptEvent):Void {
 		super.onCountdownStart(event);
 
-    // Skip the cutscene on the normal variation if we are in Freeplay.
-    if (PlayState.instance.currentVariation == 'default' && !PlayStatePlaylist.isStoryMode) hasPlayedCutscene = true;
+    // Skip the cutscene unless we are in Story Mode, or Pico Mix specifically.
+    if (PlayState.instance.currentVariation != 'pico' && !PlayStatePlaylist.isStoryMode) hasPlayedCutscene = true;
 
     if (!hasPlayedCutscene) {
       trace('Pausing countdown to play cutscene.');
@@ -46,6 +46,23 @@ class SenpaiSong extends Song {
       transitionToDialogue();
     }
 	}
+
+  public override function listAltInstrumentalIds(difficultyId:String, variationId:String):Array<String> {
+    if (difficultyId == 'easy' || difficultyId == 'normal' || difficultyId == 'hard') {
+      var hasBeatenPicoMix = Save.instance.hasBeatenSong(this.id, null, 'pico');
+
+      switch (variationId) {
+        case 'pico':
+          // return hasBeatenPicoMix ? [''] : [];
+          // No Pico mix on BF instrumental, sorry!
+          return [];
+        default:
+          return hasBeatenPicoMix ? ['pico'] : [];
+      }
+    }
+
+    return [];
+  }
 
   function transitionToDialogue() {
     trace('Transitioning to dialogue.');

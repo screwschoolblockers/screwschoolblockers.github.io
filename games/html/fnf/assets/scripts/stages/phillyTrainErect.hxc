@@ -18,6 +18,7 @@ import flixel.text.FlxTextBorderStyle;
 import funkin.input.Controls;
 import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
+import funkin.Preferences;
 
 class PhillyTrainErectStage extends Stage
 {
@@ -55,12 +56,15 @@ class PhillyTrainErectStage extends Stage
 	public override function onCountdownStart(event:CountdownScriptEvent):Void {
 		super.onCountdownStart(event);
 
+
     if(!hasPlayedInGameCutscene && PlayState.instance.currentStage.getBoyfriend().characterId == 'pico-playable'){
       trace('Pausing countdown to play in game cutscene');
 
       hasPlayedInGameCutscene = true;
 
       event.cancel(); // CANCEL THE COUNTDOWN!
+
+
 
       PlayState.instance.camHUD.visible = false;
       doppleGangerCutscene();
@@ -84,11 +88,10 @@ class PhillyTrainErectStage extends Stage
 
 	var cutsceneTimerManager:FlxTimerManager;
 
-	function doppleGangerCutscene()
-	{
+	function doppleGangerCutscene(){
+
 		// Disable player input during cutscene, so you can't get a gameover during cutscene
 		PlayState.instance.isInCutscene = true;
-
 		skipText = new FlxText(936, 618, 0, 'Skip [ ' + PlayState.instance.controls.getDialogueNameFromToken("CUTSCENE_ADVANCE", true) + ' ]', 20);
     skipText.setFormat(Paths.font('vcr.ttf'), 40, 0xFFFFFFFF, "right", FlxTextBorderStyle.OUTLINE, 0xFF000000);
     skipText.scrollFactor.set();
