@@ -52,11 +52,14 @@ class PhillyTrainErectStage extends Stage
   {
     super.onCreate(event);
 
+    trainEnabled = true;
     hasPlayedInGameCutscene = false;
     cutsceneSkipped = false;
     canSkipCutscene = false;
     playerShoots = false;
     explode = true;
+    cutsceneTimerManager = null;
+    cutsceneConductor = null;
   }
 
   public override function onCountdownStart(event:CountdownScriptEvent):Void
@@ -94,7 +97,6 @@ class PhillyTrainErectStage extends Stage
   var cutsceneConductor:Conductor;
 
   var cutsceneTimerManager:FlxTimerManager;
-  var gaspSound:FunkinSound = null;
 
   function doppleGangerCutscene()
   {
@@ -228,8 +230,6 @@ class PhillyTrainErectStage extends Stage
 
     picoPlayer.scriptCall('doAnim', ['Player', playerShoots, explode, cutsceneTimerManager]);
     picoOpponent.scriptCall('doAnim', ['Opponent', !playerShoots, explode, cutsceneTimerManager]);
-
-    if (gaspSound == null) gaspSound = FunkinSound.playOnce(Paths.sound('cutscene/picoGasp'), 1);
 
     PlayState.instance.resetCamera(false, true);
     PlayState.instance.cameraFollowPoint.setPosition(midPoint[0], midPoint[1]);

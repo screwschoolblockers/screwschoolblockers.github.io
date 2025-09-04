@@ -1,10 +1,12 @@
 import flixel.FlxG;
 import flixel.util.FlxTimer;
+import funkin.util.HapticUtil;
 import funkin.play.PlayState;
 import funkin.play.PauseSubState;
 import funkin.graphics.FunkinSprite;
 import funkin.play.character.AnimateAtlasCharacter;
 import funkin.play.GameOverSubState;
+import funkin.FunkinMemory;
 import StringTools;
 
 class PicoBlazinCharacter extends AnimateAtlasCharacter
@@ -27,6 +29,9 @@ class PicoBlazinCharacter extends AnimateAtlasCharacter
     GameOverSubState.blueBallSuffix = '-pico-gutpunch';
 
     PauseSubState.musicSuffix = '-pico';
+
+    // Precache the death anim.
+    FunkinMemory.cacheTexture(Paths.image('picoBlazinDeathConfirm', 'weekend1'));
   }
 
   var cantUppercut = false;
@@ -133,6 +138,19 @@ class PicoBlazinCharacter extends AnimateAtlasCharacter
 
       // Make sure the death music plays with PERFECT timing.
       new FlxTimer().start(1.25, afterPicoDeathGutPunchIntro);
+
+      if (HapticUtil.hapticsAvailable)
+      {
+        new FlxTimer().start(0.5, function(tmr:FlxTimer) {
+          // Pico falls on his knees.
+          HapticUtil.vibrate(0, 0.1, 0.1, 1);
+
+          new FlxTimer().start(0.6, function(tmr:FlxTimer) {
+            // Pico falls "asleep". :)
+            HapticUtil.vibrate(0, 0.1, 0.1, 1);
+          });
+        });
+      }
     }
     else if (name == "deathConfirm")
     {
@@ -154,7 +172,7 @@ class PicoBlazinCharacter extends AnimateAtlasCharacter
 
   function doDeathConfirm():Void
   {
-    var picoDeathConfirm:FunkinSprite = FunkinSprite.createSparrow(this.x + 905, this.y + 1030, 'picoBlazinDeathConfirm');
+    var picoDeathConfirm:FunkinSprite = FunkinSprite.createSparrow(this.x + 1045, this.y + 1216, 'picoBlazinDeathConfirm');
     picoDeathConfirm.animation.addByPrefix('confirm', "Pico Gut Punch Death0", 24, false);
     picoDeathConfirm.animation.play('confirm');
     picoDeathConfirm.scale.set(1.75, 1.75);
@@ -449,13 +467,15 @@ class PicoBlazinCharacter extends AnimateAtlasCharacter
 
   function playPunchHighAnim()
   {
-    this.playAnimation('punchHigh' + doAlternate(), true, false);
+    var postfix:String = doAlternate();
+    this.playAnimation('punchHigh' + postfix, true, false);
     moveToFront();
   }
 
   function playPunchLowAnim()
   {
-    this.playAnimation('punchLow' + doAlternate(), true, false);
+    var postfix:String = doAlternate();
+    this.playAnimation('punchLow' + postfix, true, false);
     moveToFront();
   }
 

@@ -20,11 +20,18 @@ class SenpaiSong extends Song
     super('senpai');
   }
 
-  public override function isSongNew(currentDifficulty:String, currentVariation:String):Bool
+  public override function listAltInstrumentalIds(difficultyId:String, variationId:String):Array<String>
   {
-    if (currentVariation == 'pico') return !Save.instance.hasBeatenSong(this.id, null, 'pico');
+    var results:Array<String> = super.listAltInstrumentalIds(difficultyId, variationId);
 
-    return false;
+    if (difficultyId == 'easy' || difficultyId == 'normal' || difficultyId == 'hard')
+    {
+      var hasBeatenPicoMix = Save.instance.hasBeatenSong(this.id, null, 'pico');
+
+      if (!hasBeatenPicoMix) results = [for (id in results) if (id != 'pico') id];
+    }
+
+    return results;
   }
 
   public override function onCountdownStart(event:CountdownScriptEvent):Void
@@ -32,7 +39,7 @@ class SenpaiSong extends Song
     super.onCountdownStart(event);
 
     // Skip the cutscene unless we are in Story Mode, or Pico Mix specifically.
-    if (PlayState.instance.currentVariation != 'pico' && !PlayStatePlaylist.isStoryMode) hasPlayedCutscene = true;
+    if (!PlayStatePlaylist.isStoryMode) hasPlayedCutscene = true;
 
     // Skip the cutscene if we're playtesting in the Chart Editor.
     if (PlayState.instance.isChartingMode && !hasPlayedCutscene) hasPlayedCutscene = true;
@@ -50,26 +57,6 @@ class SenpaiSong extends Song
 
       transitionToDialogue();
     }
-  }
-
-  public override function listAltInstrumentalIds(difficultyId:String, variationId:String):Array<String>
-  {
-    if (difficultyId == 'easy' || difficultyId == 'normal' || difficultyId == 'hard')
-    {
-      var hasBeatenPicoMix = Save.instance.hasBeatenSong(this.id, null, 'pico');
-
-      switch (variationId)
-      {
-        case 'pico':
-          // return hasBeatenPicoMix ? [''] : [];
-          // No Pico mix on BF instrumental, sorry!
-          return [];
-        default:
-          return hasBeatenPicoMix ? ['pico'] : [];
-      }
-    }
-
-    return [];
   }
 
   function transitionToDialogue()
@@ -110,8 +97,7 @@ class SenpaiSong extends Song
   function startDialogue()
   {
     PlayState.instance.disableKeys = false;
-    var targetDialogue = PlayState.instance.currentVariation == 'pico' ? 'senpai-pico' : 'senpai';
-    PlayState.instance.startConversation(targetDialogue);
+    PlayState.instance.startConversation('senpai');
   }
 
   /**

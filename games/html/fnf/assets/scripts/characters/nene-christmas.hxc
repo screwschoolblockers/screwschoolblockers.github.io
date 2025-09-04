@@ -203,6 +203,8 @@ class NeneChristmasCharacter extends SparrowCharacter
   {
     super.onUpdate(event);
 
+    synchronizeShader();
+
     // Set the visibility of ABot to match Nene's.
     abot.visible = this.visible;
     pupil.visible = this.visible;
@@ -268,6 +270,26 @@ class NeneChristmasCharacter extends SparrowCharacter
     }
   }
 
+  var currentShader = null;
+  function synchronizeShader():Void
+  {
+    if (currentShader == this.shader) return;
+
+    currentShader = this.shader;
+
+    abot.shader = currentShader;
+    abotViz.shader = currentShader;
+    stereoBG.shader = currentShader;
+    eyeWhites.shader = currentShader;
+
+    for (member in abotViz.members)
+    {
+      member.shader = currentShader;
+    }
+
+    trace("Synchronized shader between children!");
+  }
+
   override function onSongStart(event:ScriptEvent)
   {
     abotViz.snd = FlxG.sound.music;
@@ -293,18 +315,9 @@ class NeneChristmasCharacter extends SparrowCharacter
 
     switch (currentState)
     {
-      case STATE_RAISE:
-        if (name == "raiseKnife")
-        {
-          animationFinished = true;
-          transitionState();
-        }
-      case STATE_LOWER:
-        if (name == "lowerKnife")
-        {
-          animationFinished = true;
-          transitionState();
-        }
+      case STATE_RAISE, STATE_LOWER:
+        animationFinished = true;
+        transitionState();
       default:
         // Ignore.
     }
