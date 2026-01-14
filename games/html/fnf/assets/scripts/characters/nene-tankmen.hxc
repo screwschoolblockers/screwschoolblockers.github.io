@@ -1,17 +1,13 @@
-import funkin.play.character.MultiSparrowCharacter;
+import funkin.play.character.AnimateAtlasCharacter;
 import funkin.play.PlayState;
 import flixel.FlxG;
-import flixel.FlxSprite;
 import flixel.group.FlxTypedSpriteGroup;
 import funkin.graphics.FunkinSprite;
-import funkin.modding.base.ScriptedFlxAtlasSprite;
-import funkin.modding.base.ScriptedFlxSprite;
-import funkin.modding.base.ScriptedFlxSpriteGroup;
-import funkin.graphics.adobeanimate.FlxAtlasSprite;
+import funkin.modding.base.ScriptedFunkinSprite;
 import funkin.graphics.shaders.AdjustColorShader;
 import funkin.audio.visualize.ABotVis;
 
-class NeneTankmenCharacter extends MultiSparrowCharacter
+class NeneTankmenCharacter extends AnimateAtlasCharacter
 {
   function new()
   {
@@ -23,11 +19,12 @@ class NeneTankmenCharacter extends MultiSparrowCharacter
   var PUPIL_STATE_NORMAL = 0;
   var PUPIL_STATE_LEFT = 1;
 
-  var abot:FlxAtlasSprite;
+  var abot:FunkinSprite;
   var abotViz:ABotVis;
-  var stereoBG:FlxSprite;
-  var eyeWhites:FlxSprite;
-  var pupil:FlxAtlasSprite;
+  var stereoBG:FunkinSprite;
+  var eyeWhites:FunkinSprite;
+  var pupil:FunkinSprite;
+  var comboHeart:FunkinSprite;
 
   var adjustColor:AdjustColorShader;
   var vizAdjustColor:AdjustColorShader;
@@ -50,16 +47,30 @@ class NeneTankmenCharacter extends MultiSparrowCharacter
     vizAdjustColor.contrast = 0;
     vizAdjustColor.saturation = -10;
 
-    stereoBG = new FlxSprite(0, 0, Paths.image('characters/abot/stereoBG'));
+    stereoBG = new FunkinSprite(0, 0, Paths.image('characters/abot/stereoBG'));
 
     eyeWhites = new FunkinSprite().makeSolidColor(160, 60);
 
-    pupil = new FlxAtlasSprite(0, 0, Paths.animateAtlas("characters/abot/systemEyes", "shared"));
+    pupil = FunkinSprite.createTextureAtlas(0, 0, "characters/abot/systemEyes", "shared");
     pupil.x = this.x;
     pupil.y = this.y;
     pupil.zIndex = this.zIndex - 5;
 
-    abot = ScriptedFlxAtlasSprite.init('ABotAtlasSprite', 0, 0);
+    pupil.anim.onFrameChange.add(function(name:String, frameNumber:Int, frameIndex:Int) {
+      if (frameNumber == 16)
+      {
+        pupil.anim.pause();
+      }
+    });
+
+    pupil.anim.onFrameChange.add(function(name:String, frameNumber:Int, frameIndex:Int) {
+      if (frameNumber == 16)
+      {
+        pupil.anim.pause();
+      }
+    });
+
+    abot = ScriptedFunkinSprite.init('ABotAtlasSprite', 0, 0);
     abot.x = this.x;
     abot.y = this.y;
     abot.zIndex = this.zIndex - 1;
@@ -72,10 +83,21 @@ class NeneTankmenCharacter extends MultiSparrowCharacter
     stereoBG.shader = adjustColor;
     pupil.shader = adjustColor;
     abot.shader = adjustColor;
+
     for (spr in abotViz.members)
     {
       spr.shader = vizAdjustColor;
     }
+
+    comboHeart = FunkinSprite.createSparrow(0, 0, "characters/Nene_comboHeart");
+    comboHeart.animation.addByPrefix("idle", "hearts aflutter", 24, false);
+    comboHeart.shader = adjustColor;
+    comboHeart.zIndex = this.zIndex + 1;
+    comboHeart.visible = false;
+
+    comboHeart.animation.onFinish.add((name:String) -> {
+      comboHeart.visible = false;
+    });
   }
 
   /**
@@ -199,10 +221,10 @@ class NeneTankmenCharacter extends MultiSparrowCharacter
 
   function dance(forceRestart:Bool)
   {
-    if (abot != null)
+    if (abot?.anim != null)
     {
-      abot.playAnimation("");
-      abot.anim.curFrame = 1; // we start on this frame, since from Flash the symbol has a non-bumpin frame on frame 0
+      // we start on frame 1, since from Flash the symbol has a non-bumpin frame on frame 0
+      abot.anim.play("", true, false, 1);
     }
 
     // Then, perform the appropriate animation for the current state.
@@ -265,25 +287,14 @@ class NeneTankmenCharacter extends MultiSparrowCharacter
 
   function movePupilsLeft():Void
   {
-    if (pupilState == PUPIL_STATE_LEFT) return;
     trace('Move pupils left');
-    pupil.playAnimation('');
-    pupil.anim.curFrame = 0;
-    // pupilState = PUPIL_STATE_LEFT;
+    pupil.anim.play('', true, false, 0);
   }
 
   function movePupilsRight():Void
   {
-    if (pupilState == PUPIL_STATE_NORMAL) return;
     trace('Move pupils right');
-    pupil.playAnimation('');
-    pupil.anim.curFrame = 17;
-    // pupilState = PUPIL_STATE_NORMAL;
-  }
-
-  public function playAnimation(name:String, restart:Bool = false, ignoreOther:Bool = false, reversed:Bool = false):Void
-  {
-    super.playAnimation(name, restart, ignoreOther, reversed);
+    pupil.anim.play('', true, false, 17);
   }
 
   function moveByNoteKind(kind:String)
@@ -317,6 +328,17 @@ class NeneTankmenCharacter extends MultiSparrowCharacter
     moveByNoteKind(event.note.kind);
   }
 
+  override function playAnimation(name:String, restart:Bool = false, ignoreOther:Bool = false):Void
+  {
+    super.playAnimation(name, restart, ignoreOther);
+
+    if (name == "combo50" && comboHeart != null)
+    {
+      comboHeart.visible = true;
+      comboHeart.animation.play("idle");
+    }
+  }
+
   function onUpdate(event:UpdateScriptEvent)
   {
     super.onUpdate(event);
@@ -332,7 +354,7 @@ class NeneTankmenCharacter extends MultiSparrowCharacter
       switch (pupilState)
       {
         case PUPIL_STATE_NORMAL:
-          if (pupil.anim.curFrame >= 17)
+          if (pupil.anim.curAnim.curFrame >= 17)
           {
             trace('Done moving pupils left');
             pupilState = PUPIL_STATE_LEFT;
@@ -340,7 +362,7 @@ class NeneTankmenCharacter extends MultiSparrowCharacter
           }
 
         case PUPIL_STATE_LEFT:
-          if (pupil.anim.curFrame >= 30)
+          if (pupil.anim.curAnim.curFrame >= 30)
           {
             trace('Done moving pupils right');
             pupilState = PUPIL_STATE_NORMAL;
@@ -350,15 +372,15 @@ class NeneTankmenCharacter extends MultiSparrowCharacter
     }
 
     // refreshes just for the zIndex shit!
-    if (!refershedLol)
+    if (!refershedLol && !this.debug)
     {
-      abot.x = this.x - 145;
-      abot.y = this.y + 232; // 764 - 740
+      abot.x = this.x - 95 - (-this.globalOffsets[0] * this.scale.x);
+      abot.y = this.y + 384 - (-this.globalOffsets[1] * this.scale.y);
       abot.zIndex = this.zIndex - 10;
 
       PlayState.instance.currentStage.add(abot);
 
-      abotViz.x = abot.x + 200;
+      abotViz.x = abot.x + 207;
       abotViz.y = abot.y + 84;
       abotViz.zIndex = abot.zIndex - 1;
       PlayState.instance.currentStage.add(abotViz);
@@ -368,8 +390,8 @@ class NeneTankmenCharacter extends MultiSparrowCharacter
       eyeWhites.zIndex = abot.zIndex - 10;
       PlayState.instance.currentStage.add(eyeWhites);
 
-      pupil.x = abot.x - 507;
-      pupil.y = abot.y - 492;
+      pupil.x = abot.x + 50;
+      pupil.y = abot.y + 238;
       pupil.zIndex = eyeWhites.zIndex + 5;
       PlayState.instance.currentStage.add(pupil);
 
@@ -377,6 +399,11 @@ class NeneTankmenCharacter extends MultiSparrowCharacter
       stereoBG.y = abot.y + 30;
       stereoBG.zIndex = abot.zIndex - 8;
       PlayState.instance.currentStage.add(stereoBG);
+
+      comboHeart.x = this.x + 174.5;
+      comboHeart.y = this.y - 66;
+      comboHeart.zIndex = this.zIndex + 1;
+      PlayState.instance.currentStage.add(comboHeart);
 
       PlayState.instance.currentStage.refresh();
       refershedLol = true;
@@ -416,8 +443,8 @@ class NeneTankmenCharacter extends MultiSparrowCharacter
     switch (currentState)
     {
       case STATE_RAISE, STATE_LOWER, STATE_HAIR_BLOWING, STATE_HAIR_FALLING, STATE_HAIR_BLOWING_RAISE, STATE_HAIR_FALLING_RAISE:
-          animationFinished = true;
-          transitionState();
+        animationFinished = true;
+        transitionState();
       default:
         // Ignore.
     }
@@ -556,5 +583,22 @@ class NeneTankmenCharacter extends MultiSparrowCharacter
         // trace('UKNOWN STATE ' + currentState);
         currentState = STATE_DEFAULT;
     }
+  }
+
+  override function getAtlasSettings():AtlasSpriteSettings
+  {
+    // Hide the heart symbol Nene has in her combo animation.
+    // We manually add it as a separate sprite for nene-tankmen specifically
+    // so it isn't affected by the rimlight!
+    return {
+      onSymbolCreate: (symbol) -> {
+        if (symbol.name == "hearts aflutter")
+        {
+          symbol.timeline.forEachLayer((layer) -> {
+            layer.visible = false;
+          });
+        }
+      }
+    };
   }
 }

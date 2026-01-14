@@ -7,12 +7,22 @@ import funkin.play.PlayState;
 import funkin.graphics.shaders.OverlayBlend;
 import funkin.util.HapticUtil;
 import funkin.util.Sequence;
+import funkin.FunkinMemory;
 
 class LimoRideStage extends Stage
 {
   function new()
   {
     super('limoRide');
+  }
+
+  function onCreate(event:ScriptEvent)
+  {
+    super.onCreate(event);
+
+    // Precache the car passing sfx.
+    for (snd in ['carPass0', 'carPass1'])
+      FunkinMemory.cacheSound(Paths.sound(snd, "week4"));
   }
 
   override function buildStage()
@@ -28,7 +38,7 @@ class LimoRideStage extends Stage
     var limoSunset:FlxSprite = getNamedProp('limoSunset');
     if (limoSunset == null)
     {
-      trace('[WARN] Could not retrieve limoSunset');
+      trace(' WARNING '.bg_yellow().bold() + ' Could not retrieve limoSunset');
     }
     else
     {

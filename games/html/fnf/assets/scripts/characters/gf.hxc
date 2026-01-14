@@ -1,16 +1,16 @@
-import funkin.play.character.SparrowCharacter;
+import funkin.play.character.AnimateAtlasCharacter;
 import funkin.play.character.CharacterType;
 import funkin.play.PlayState;
 import flixel.addons.effects.FlxTrail;
 
-class GirlfriendCharacter extends SparrowCharacter
+class GirlfriendCharacter extends AnimateAtlasCharacter
 {
   function new()
   {
     super('gf');
   }
 
-  override function onAdd()
+  override function onAdd():Void
   {
     if (!debug && this.characterType == CharacterType.DAD)
     {
@@ -27,7 +27,7 @@ class GirlfriendCharacter extends SparrowCharacter
     }
   }
 
-  override function dance(force:Bool)
+  override function dance(force:Bool):Void
   {
     // Fix animation glitches with Week 3.
     // Wait for 'hairBlow' to play, preventing dancing from interrupting it.

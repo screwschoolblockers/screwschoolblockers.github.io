@@ -1,16 +1,10 @@
-import funkin.graphics.adobeanimate.FlxAtlasSprite;
-import flixel.FlxG;
-import funkin.audio.FunkinSound;
-import funkin.play.character.SparrowCharacter;
-import funkin.play.GameOverSubState;
 import funkin.play.character.BaseCharacter;
 import funkin.data.character.CharacterDataParser;
-import funkin.play.character.CharacterType;
 import funkin.play.PlayState;
-import funkin.play.character.MultiSparrowCharacter;
+import funkin.play.character.MultiAnimateAtlasCharacter;
 import funkin.util.HapticUtil;
 
-class BoyfriendDarkCharacter extends MultiSparrowCharacter
+class BoyfriendDarkCharacter extends MultiAnimateAtlasCharacter
 {
   function new()
   {
@@ -41,9 +35,13 @@ class BoyfriendDarkCharacter extends MultiSparrowCharacter
   override function set_alpha(val:Float):Float
   {
     super.set_alpha(val);
-    if (val != 1) normalChar.alpha = 1;
-    else
-      normalChar.alpha = 0.0001;
+
+    if (normalChar != null)
+    {
+      if (val != 1) normalChar.alpha = 1;
+      else
+        normalChar.alpha = 0.0001;
+    }
 
     return val;
   }
@@ -54,19 +52,23 @@ class BoyfriendDarkCharacter extends MultiSparrowCharacter
     if (normalChar != null)
     {
       normalChar.playAnimation(name, restart, ignoreOther);
-      normalChar.setPosition(this.x, this.y);
+      normalChar.setPosition(this.x - 1, this.y - 11);
     }
   }
 
-  function onCreate(event:ScriptEvent)
+  function onCreate(event:ScriptEvent):Void
   {
     super.onCreate(event);
-    normalChar = CharacterDataParser.fetchCharacter('bf');
-    normalChar.zIndex = 199;
-    normalChar.alpha = 0.0001;
-    normalChar.flipX = false;
 
-    PlayState.instance.currentStage.add(normalChar);
-    PlayState.instance.currentStage.refresh(); // Apply z-index.
+    if (!this.debug)
+    {
+      normalChar = CharacterDataParser.fetchCharacter('bf');
+      normalChar.zIndex = 199;
+      normalChar.alpha = 0.0001;
+      normalChar.flipX = false;
+
+      PlayState.instance.currentStage.add(normalChar);
+      PlayState.instance.currentStage.refresh(); // Apply z-index.
+    }
   }
 }

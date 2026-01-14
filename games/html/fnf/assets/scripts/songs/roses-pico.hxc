@@ -11,7 +11,7 @@ import funkin.save.Save;
 import flixel.tweens.FlxEase;
 import funkin.ui.options.PreferencesMenu;
 
-class RosesPicoSong extends Song
+class RosesPicoMixSong extends Song
 {
   var hasPlayedCutscene:Bool;
 
@@ -21,13 +21,6 @@ class RosesPicoSong extends Song
       {
         variation: 'pico'
       });
-  }
-
-  public override function isSongNew(currentDifficulty:String, currentVariation:String):Bool
-  {
-    if (currentVariation == 'pico') return !Save.instance.hasBeatenSong(this.id, null, this.variation);
-
-    return false;
   }
 
   public override function onCountdownStart(event:CountdownScriptEvent):Void

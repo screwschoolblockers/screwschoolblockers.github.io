@@ -4,12 +4,10 @@ import funkin.save.Save;
 import funkin.modding.base.ScriptedFlxSpriteGroup;
 import funkin.play.cutscene.VideoCutscene;
 import openfl.filters.ShaderFilter;
-import funkin.graphics.shaders.DropShadowScreenspace;
 import flixel.FlxCamera;
 import flixel.FlxG;
 import flixel.math.FlxPoint;
-import funkin.graphics.adobeanimate.FlxAtlasSprite;
-import funkin.modding.base.ScriptedFlxAtlasSprite;
+import funkin.modding.base.ScriptedFunkinSprite;
 import funkin.audio.FunkinSound;
 import funkin.play.stage.Stage;
 import funkin.graphics.FunkinSprite;
@@ -18,6 +16,7 @@ import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxTimer;
 import flixel.util.FlxTimerManager;
+import funkin.Preferences;
 
 class StressPicoMixSong extends Song
 {
@@ -34,16 +33,12 @@ class StressPicoMixSong extends Song
     hasPlayedCutscene = false;
   }
 
-  public override function isSongNew(currentDifficulty:String, currentVariation:String):Bool
-  {
-    if (currentVariation == 'pico') return !Save.instance.hasBeatenSong(this.id, null, this.variation);
-
-    return false;
-  }
-
   public override function onCountdownStart(event:CountdownScriptEvent):Void
   {
     super.onCountdownStart(event);
+
+    // Skip the cutscene if we're playtesting in the Chart Editor.
+    if (PlayState.instance.isChartingMode && !hasPlayedCutscene) hasPlayedCutscene = true;
 
     if (!hasPlayedCutscene)
     {
@@ -56,33 +51,36 @@ class StressPicoMixSong extends Song
       startVideo();
     }
 
-    if (tankmanGroup != null && !tankmanGroup.scriptCall('isValid'))
+    if (!PlayState.instance.isMinimalMode)
     {
-      // Destroy the tankman group if it's not valid.
-      tankmanGroup.destroy();
-      PlayState.instance.currentStage.remove(tankmanGroup);
-      tankmanGroup = null;
-    }
+      if (tankmanGroup != null && !tankmanGroup.scriptCall('isValid'))
+      {
+        // Destroy the tankman group if it's not valid.
+        tankmanGroup.destroy();
+        PlayState.instance.currentStage.remove(tankmanGroup);
+        tankmanGroup = null;
+      }
 
-    if (tankmanGroup == null)
-    {
-      // Initialize the tankman group if it's not available.
-      trace('Initializing tankman group... ' + PlayState.instance.currentVariation);
-      tankmanGroup = ScriptedFlxSpriteGroup.init('TankmanSpriteGroup', true);
-    }
+      if (tankmanGroup == null)
+      {
+        // Initialize the tankman group if it's not available.
+        trace('Initializing tankman group... ' + PlayState.instance.currentVariation);
+        tankmanGroup = ScriptedFlxSpriteGroup.init('TankmanSpriteGroup', true);
+      }
 
-    if (tankmanGroup != null)
-    {
-      // resets the tankmen!
-      tankmanGroup.scriptCall('reset');
+      if (tankmanGroup != null)
+      {
+        // resets the tankmen!
+        tankmanGroup.scriptCall('reset');
 
-      tankmanGroup.zIndex = 30;
-      PlayState.instance.currentStage.add(tankmanGroup);
-      PlayState.instance.currentStage.refresh();
-    }
-    else
-    {
-      trace('Failed to initialize tankman group!');
+        tankmanGroup.zIndex = 30;
+        PlayState.instance.currentStage.add(tankmanGroup);
+        PlayState.instance.currentStage.refresh();
+      }
+      else
+      {
+        trace('Failed to initialize tankman group!');
+      }
     }
   }
 
@@ -99,6 +97,7 @@ class StressPicoMixSong extends Song
     {
       videoPath += '-censored';
     }
+    videoPath += '.mkv'; // Use MKV for subtitles.
 
     VideoCutscene.play(Paths.videos(videoPath));
   }
@@ -117,9 +116,9 @@ class StressPicoMixSong extends Song
     {
       tankmanGroup.scriptCall('reset');
     }
-    if (PlayState.instance.currentStage.getGirlfriend() != null)
+    if (PlayState.instance.currentStage?.getGirlfriend() != null)
     {
-      PlayState.instance.currentStage.getGirlfriend().scriptCall('reset');
+      PlayState.instance.currentStage?.getGirlfriend().scriptCall('reset');
       trace('reset pico!');
     }
   }
@@ -136,10 +135,6 @@ class StressPicoMixSong extends Song
 
   var hasPlayedEndCutscene:Bool = false;
 
-  var tankmanCutscene:ScriptedFlxAtlasSprite;
-  var rimlightCamera:FlxCamera;
-  var screenspaceRimlight:DropShadowScreenspace = new DropShadowScreenspace();
-
   function onUpdate(event:UpdateScriptEvent):Void
   {
     super.onUpdate(event);
@@ -147,21 +142,6 @@ class StressPicoMixSong extends Song
     if (PlayState.instance.isInCutscene)
     {
       if (cutsceneTimerManager != null) cutsceneTimerManager.update(event.elapsed);
-
-      if (rimlightCamera != null)
-      {
-        rimlightCamera.focusOn(new FlxPoint(PlayState.instance.camGame.viewLeft + PlayState.instance.camGame.viewWidth / 2,
-          PlayState.instance.camGame.viewTop + PlayState.instance.camGame.viewHeight / 2));
-        rimlightCamera.zoom = PlayState.instance.camGame.zoom;
-      }
-
-      if (FlxG.mouse.pressed)
-      {
-        // tankmanCutscene.x = FlxG.mouse.viewX - PlayState.instance.currentStage.getDad().x;
-        //  tankmanCutscene.y = FlxG.mouse.viewY - PlayState.instance.currentStage.getDad().y;
-
-        // trace(tankmanCutscene.x  - PlayState.instance.currentStage.getDad().x, tankmanCutscene.y  - PlayState.instance.currentStage.getDad().y);
-      }
     }
   }
 
@@ -170,6 +150,9 @@ class StressPicoMixSong extends Song
   public override function onSongEnd(event:CountdownScriptEvent):Void
   {
     super.onSongEnd(event);
+
+    // Skip the cutscene if in minimal mode.
+    if (PlayState.instance.isMinimalMode) hasPlayedEndCutscene = true;
 
     if (!hasPlayedEndCutscene)
     {
@@ -220,33 +203,17 @@ class StressPicoMixSong extends Song
     PlayState.instance.isInCutscene = true;
     PlayState.instance.camHUD.visible = false;
 
-    rimlightCamera = new FlxCamera();
-    FlxG.cameras.insert(rimlightCamera, (FlxG.onMobile) ? -4 : -2, false);
-    rimlightCamera.bgColor = 0x00FFFFFF; // Show the game scene behind the camera.
-
-    screenspaceRimlight.baseBrightness = -46;
-    screenspaceRimlight.baseHue = -38;
-    screenspaceRimlight.baseContrast = -25;
-    screenspaceRimlight.baseSaturation = -20;
-
-    screenspaceRimlight.angle = 45;
-    screenspaceRimlight.threshold = 0.3;
-
-    var rimlightFilter:ShaderFilter = new ShaderFilter(screenspaceRimlight);
-
-    rimlightCamera.filters = [rimlightFilter];
-
-    tankmanCutscene = ScriptedFlxAtlasSprite.init('TankmanEndingSprite', 0, 0);
-    tankmanCutscene.setPosition(PlayState.instance.currentStage.getDad().x + 723, PlayState.instance.currentStage.getDad().y + 145);
-
     PlayState.instance.tweenCameraToPosition(tankmanPos[0] + 320, tankmanPos[1] - 70, 2.8, FlxEase.expoOut);
     PlayState.instance.tweenCameraZoom(0.65, 2, true, FlxEase.expoOut);
 
-    PlayState.instance.currentStage.getDad().visible = false;
-    PlayState.instance.currentStage.add(tankmanCutscene);
-    tankmanCutscene.cameras = [rimlightCamera];
+    PlayState.instance.currentStage.getDad().playAnimation('stressPicoEnding', true);
 
-    tankmanCutscene.scriptCall('doAnim');
+    if (Preferences.subtitles)
+    {
+      PlayState.instance.subtitles.offsets = [0, 42];
+      PlayState.instance.subtitles.alignment = 'bottom';
+      PlayState.instance.subtitles.assignSubtitles('songs/stress/subtitles/end-cutscene-pico', PlayState.instance.currentStage.getDad().picoEndingSound);
+    }
 
     new FlxTimer(cutsceneTimerManager).start(176 / 24, _ -> {
       PlayState.instance.currentStage.getBoyfriend().playAnimation('laughEnd', true);
@@ -258,8 +225,6 @@ class StressPicoMixSong extends Song
     });
 
     new FlxTimer(cutsceneTimerManager).start(320 / 24, _ -> {
-      FlxG.cameras.remove(rimlightCamera);
-      rimlightCamera = null;
       PlayState.instance.endSong(true);
     });
   }

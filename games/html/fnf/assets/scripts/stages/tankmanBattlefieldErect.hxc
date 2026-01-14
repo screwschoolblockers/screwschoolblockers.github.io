@@ -44,43 +44,27 @@ class TankmanBattlefieldErectStage extends Stage
       case CharacterType.BF:
         rim.angle = 90;
 
-        character.animation.onFrameChange.add(function() {
-          if (getBoyfriend() != null)
-          {
-            rim.updateFrameInfo(getBoyfriend().frame);
-          }
-        });
-
       case CharacterType.GF:
         rim.angle = 90;
 
-        character.animation.onFrameChange.add(function() {
-          rim.updateFrameInfo(getGirlfriend().frame);
-        });
-
-        if (getGirlfriend().characterId == 'gf-tankmen')
+        if (getGirlfriend().characterId == 'gf-tankmen' || getGirlfriend().characterId == 'nene-tankmen')
         {
-          rim.loadAltMask('assets/week7/images/erect/masks/gfTankmen_mask.png');
+          if (getGirlfriend().characterId == 'gf-tankmen') rim.loadAltMask(Paths.image('erect/masks/gfTankmen_mask'));
+          else
+            rim.loadAltMask(Paths.image('erect/masks/neneTankmen_mask'));
           rim.maskThreshold = 0.4;
           rim.useAltMask = true;
         }
 
-        if (getGirlfriend().characterId == 'otis-speaker')
-        {
-          getNamedProp('tankBricks').setPosition(445, 774);
-        }
+        getNamedProp('tankBricks').setPosition(445, 774);
 
       case CharacterType.DAD:
-        rim.angle = 135;
+        rim.angle = 25;
         rim.threshold = 0.3;
-
-        character.animation.onFrameChange.add(function() {
-          rim.updateFrameInfo(getDad().frame);
-        });
 
         if (getDad().characterId == 'tankman-bloody')
         {
-          rim.loadAltMask('assets/week7/images/erect/masks/tankmanCaptainBloody_mask.png');
+          rim.loadAltMask(Paths.image('erect/masks/tankmanCaptainBloody_mask'));
           rim.maskThreshold = 1;
           rim.useAltMask = false;
         }
@@ -89,7 +73,18 @@ class TankmanBattlefieldErectStage extends Stage
         tankmanRim = rim;
 
       default:
+        // Do nothing.
     }
+
+    // TODO: This is here because of a Polymod bug!!
+    var character_persist:BaseCharacter = character;
+
+    character.animation.onFrameChange.add(function() {
+      if (character_persist != null)
+      {
+        rim.updateFrameInfo(character_persist.frame);
+      }
+    });
   }
 
   /**
@@ -129,9 +124,6 @@ class TankmanBattlefieldErectStage extends Stage
       tankmanRim.useAltMask = false;
     }
 
-    if (getGirlfriend().characterId == 'otis-speaker')
-    {
-      getNamedProp('tankBricks').setPosition(445, 774);
-    }
+    getNamedProp('tankBricks').setPosition(445, 774);
   }
 }

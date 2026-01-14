@@ -6,9 +6,8 @@ import flixel.tweens.FlxTween;
 import flixel.util.FlxTimer;
 import funkin.audio.FunkinSound;
 import funkin.Conductor;
-import funkin.graphics.adobeanimate.FlxAtlasSprite;
 import funkin.graphics.FunkinSprite;
-import funkin.modding.base.ScriptedFlxAtlasSprite;
+import funkin.modding.base.ScriptedFunkinSprite;
 import funkin.play.cutscene.CutsceneType;
 import funkin.play.GameOverSubState;
 import funkin.play.PlayState;
@@ -20,11 +19,11 @@ import flixel.text.FlxText;
 import flixel.text.FlxTextBorderStyle;
 import funkin.util.TouchUtil;
 import funkin.ui.FullScreenScaleMode;
+import funkin.Preferences;
 
 // We have to use FlxBasePoint in scripts because FlxPoint is inlined and not available in scripts
 class EggnogErectSong extends Song
 {
-  // var santaDead:ScriptedFlxAtlasSprite;
   var hasPlayedCutscene:Bool = false;
   var cutsceneSkipped:Bool = false;
   var canSkipCutscene:Bool = false;
@@ -57,6 +56,9 @@ class EggnogErectSong extends Song
   public override function onSongEnd(event:CountdownScriptEvent):Void
   {
     super.onSongEnd(event);
+
+    // Skip the cutscene if in minimal mode.
+    if (PlayState.instance.isMinimalMode) hasPlayedCutscene = true;
 
     if (!hasPlayedCutscene)
     {
@@ -97,10 +99,9 @@ class EggnogErectSong extends Song
     var normalSanta = PlayState.instance.currentStage.getNamedProp('santa');
     normalSanta.visible = false;
 
-    var santaDead:ScriptedFlxAtlasSprite = ScriptedFlxAtlasSprite.init('SantaDiesSprite', 0, 0);
-
-    santaDead.x = -458;
-    santaDead.y = 498;
+    var santaDead:ScriptedFunkinSprite = ScriptedFunkinSprite.init('SantaDiesSprite', 0, 0);
+    santaDead.x = -1300;
+    santaDead.y = 100;
     santaDead.zIndex = normalSanta.zIndex - 1;
     santaDead.shader = normalSanta.shader;
 
@@ -110,10 +111,10 @@ class EggnogErectSong extends Song
     santaDead.scriptCall('playCutscene');
 
     PlayState.instance.currentStage.getDad().visible = false;
-    var parentsShoot:ScriptedFlxAtlasSprite = ScriptedFlxAtlasSprite.init('DadShootsSprite', 0, 0);
+    var parentsShoot:ScriptedFunkinSprite = ScriptedFunkinSprite.init('DadShootsSprite', 0, 0);
 
-    parentsShoot.x = -516;
-    parentsShoot.y = 503;
+    parentsShoot.x = -602;
+    parentsShoot.y = -3.5;
     parentsShoot.zIndex = santaDead.zIndex - 1;
     parentsShoot.shader = normalSanta.shader;
 
@@ -130,7 +131,7 @@ class EggnogErectSong extends Song
     PlayState.instance.currentStage.getBoyfriend().danceEvery = 0;
     PlayState.instance.currentStage.getDad().danceEvery = 0;
 
-    PlayState.instance.tweenCameraToPosition(santaDead.x + 300, santaDead.y, 2.8, FlxEase.expoOut);
+    PlayState.instance.tweenCameraToPosition(santaDead.x + 1200, santaDead.y + 300, 2.8, FlxEase.expoOut);
     // PlayState.instance.tweenCameraToPosition(santaDead.x + 300, santaDead.y, 2.8, FlxEase.expoOut);
     PlayState.instance.tweenCameraZoom(0.73, 2, true, FlxEase.quadInOut);
 
@@ -138,11 +139,13 @@ class EggnogErectSong extends Song
     santaSound.volume = 1;
     santaSound.play(false);
 
+    if (Preferences.subtitles) PlayState.instance.subtitles.assignSubtitles('songs/eggnog/subtitles/santa-emotions', santaSound);
+
     shootSound = FunkinSound.load(Paths.sound('santa_shot_n_falls'), 1);
     shootSound.volume = 1;
 
     new FlxTimer().start(2.8, function(tmr) {
-      PlayState.instance.tweenCameraToPosition(santaDead.x + 150, santaDead.y, 9, FlxEase.quartInOut);
+      PlayState.instance.tweenCameraToPosition(santaDead.x + 1050, santaDead.y + 300, 9, FlxEase.quartInOut);
       PlayState.instance.tweenCameraZoom(0.79, 9, true, FlxEase.quadInOut);
     });
 
@@ -158,7 +161,7 @@ class EggnogErectSong extends Song
 
     new FlxTimer().start(12.83, function(tmr) {
       PlayState.instance.camGame.shake(0.005, 0.2);
-      PlayState.instance.tweenCameraToPosition(santaDead.x + 160, santaDead.y + 80, 5, FlxEase.expoOut);
+      PlayState.instance.tweenCameraToPosition(santaDead.x + 1060, santaDead.y + 380, 5, FlxEase.expoOut);
     });
 
     new FlxTimer().start(15, function(tmr) {

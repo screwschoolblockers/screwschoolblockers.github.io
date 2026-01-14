@@ -1,4 +1,3 @@
-import funkin.graphics.adobeanimate.FlxAtlasSprite;
 import flixel.FlxG;
 import funkin.play.character.MultiSparrowCharacter;
 import funkin.audio.FunkinSound;
@@ -11,6 +10,7 @@ import funkin.graphics.FunkinSprite;
 import funkin.play.PauseSubState;
 import funkin.play.PlayState;
 import funkin.util.HapticUtil;
+import funkin.FunkinMemory;
 
 class PicoDarkCharacter extends MultiSparrowCharacter
 {
@@ -24,9 +24,13 @@ class PicoDarkCharacter extends MultiSparrowCharacter
   override function set_alpha(val:Float):Float
   {
     super.set_alpha(val);
-    if (val != 1) normalChar.alpha = 1;
-    else
-      normalChar.alpha = 0;
+
+    if (normalChar != null)
+    {
+      if (val != 1) normalChar.alpha = 1;
+      else
+        normalChar.alpha = 0;
+    }
 
     return val;
   }
@@ -88,18 +92,26 @@ class PicoDarkCharacter extends MultiSparrowCharacter
   function onCreate(event:ScriptEvent)
   {
     super.onCreate(event);
-    normalChar = CharacterDataParser.fetchCharacter('pico-playable');
-    normalChar.zIndex = 199;
-    normalChar.alpha = 0;
-    normalChar.flipX = false;
 
-    GameOverSubState.musicSuffix = '-pico';
-    GameOverSubState.blueBallSuffix = '-pico';
+    if (!this.debug)
+    {
+      normalChar = CharacterDataParser.fetchCharacter('pico-playable');
+      normalChar.zIndex = 199;
+      normalChar.alpha = 0;
+      normalChar.flipX = false;
 
-    PauseSubState.musicSuffix = '-pico';
+      GameOverSubState.musicSuffix = '-pico';
+      GameOverSubState.blueBallSuffix = '-pico';
 
-    PlayState.instance.currentStage.add(normalChar);
-    PlayState.instance.currentStage.refresh(); // Apply z-index.
+      PauseSubState.musicSuffix = '-pico';
+
+      PlayState.instance.currentStage.add(normalChar);
+      PlayState.instance.currentStage.refresh(); // Apply z-index.
+    }
+
+    // Precache death sprites.
+    for (img in ["characters/Pico_Death_Retry", "characters/NeneKnifeToss"])
+      FunkinMemory.cacheTexture(Paths.image(img));
   }
 
   var deathSpriteRetry:FunkinSprite;
@@ -122,7 +134,7 @@ class PicoDarkCharacter extends MultiSparrowCharacter
     deathSpriteNene = FunkinSprite.createSparrow(0, 0, "characters/NeneKnifeToss");
     var gf = PlayState.instance.currentStage.getGirlfriend();
     deathSpriteNene.x = gf.originalPosition.x + 120; // + 280;
-    deathSpriteNene.y = gf.originalPosition.y - 200; // + 70;
+    deathSpriteNene.y = gf.originalPosition.y; // + 70;
     deathSpriteNene.animation.addByPrefix('throw', "knife toss0", 24, false);
     deathSpriteNene.visible = true;
     deathSpriteNene.animation.finishCallback = function(name:String) {
